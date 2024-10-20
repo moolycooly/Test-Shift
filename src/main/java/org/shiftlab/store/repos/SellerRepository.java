@@ -10,8 +10,7 @@ import java.util.List;
 @Repository
 public interface SellerRepository extends JpaRepository<SellerEntity, Integer> {
 
-//    @EntityGraph(attributePaths = {"transactions"})
-//    @Query("select s from SellerEntity s")
+
     @Query("select s from SellerEntity s left join fetch s.transactions")
     List<SellerEntity> findAllSellersJoinTransactions();
 

@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
     id "io.freefair.lombok" version "8.10"
 }
 
@@ -8,6 +9,29 @@ version = '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+}
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = false
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    "org/shiftlab/Main.class",
+                    "org/shiftlab/controllers/payload/"
+            ])
+        }))
+    }
 }
 
 dependencies {
@@ -30,8 +54,4 @@ dependencies {
 
 
 
-}
-
-test {
-    useJUnitPlatform()
 }

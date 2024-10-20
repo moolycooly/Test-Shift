@@ -1,34 +1,35 @@
 package org.shiftlab.controllers.payload;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public enum Period {
     DAY {
         @Override
-        public LocalDateTime getStartDate() {
-            return LocalDateTime.now().minusDays(1).with(LocalTime.MIN);
+        public LocalDateTime getStartDate(Clock clock) {
+            return LocalDateTime.now(clock).minusDays(1).with(LocalTime.MIN);
         }
     },
     MONTH {
         @Override
-        public LocalDateTime getStartDate() {
-            return LocalDateTime.now().withDayOfMonth(1).with(LocalTime.MIN);
+        public LocalDateTime getStartDate(Clock clock) {
+            return LocalDateTime.now(clock).withDayOfMonth(1).with(LocalTime.MIN);
         }
     },
     QUARTER {
         @Override
-        public LocalDateTime getStartDate() {
-            int month = LocalDateTime.now().getMonthValue();
+        public LocalDateTime getStartDate(Clock clock) {
+            int month = LocalDateTime.now(clock).getMonthValue();
             int startMonth = ((month - 1) / 3) * 3 + 1;
-            return LocalDateTime.now().withMonth(startMonth).withDayOfMonth(1).with(LocalTime.MIN);
+            return LocalDateTime.now(clock).withMonth(startMonth).withDayOfMonth(1).with(LocalTime.MIN);
         }
 
     },
     YEAR {
         @Override
-        public LocalDateTime getStartDate() {
-            return LocalDateTime.now().withMonth(1).withDayOfMonth(1).with(LocalTime.MIN);
+        public LocalDateTime getStartDate(Clock clock) {
+            return LocalDateTime.now(clock).withMonth(1).withDayOfMonth(1).with(LocalTime.MIN);
         }
 
     };
@@ -40,5 +41,5 @@ public enum Period {
             throw new RuntimeException();
         }
     }
-    public abstract LocalDateTime getStartDate();
+    public abstract LocalDateTime getStartDate(Clock clock);
 }

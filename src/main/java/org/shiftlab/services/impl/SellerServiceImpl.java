@@ -12,6 +12,7 @@ import org.shiftlab.store.repos.SellerRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Optional;
 public class SellerServiceImpl implements SellerService{
     private final SellerRepository sellerRepository;
     private final EntityDtoMapper entityDtoMapper;
+    private final Clock clock;
 
     @Override
     @Transactional
@@ -36,7 +38,7 @@ public class SellerServiceImpl implements SellerService{
     @Override
     @Transactional
     public SellerDto createSeller(String name,String contactInfo) {
-        var registrationDate = LocalDateTime.now();
+        var registrationDate = LocalDateTime.now(clock);
         SellerEntity seller=  sellerRepository
                 .save(SellerEntity.builder()
                         .name(name)
@@ -95,11 +97,18 @@ public class SellerServiceImpl implements SellerService{
     public Optional<SellerDto> findMostProductiveSellerByDate(LocalDateTime timeFrom, LocalDateTime timeTo) {
 
         return sellerRepository.findAllSellersJoinTransactions().stream()
-                .max(Comparator.comparing((seller)-> seller
+                .filter(seller -> {
+                    var transactionCount = seller.getTransactions().stream()
+                            .filter(transaction -> transaction.getRegistrationDate().isBefore(timeTo)
+                                    && transaction.getRegistrationDate().isAfter(timeFrom))
+                            .count();
+                    return transactionCount > 0;
+                }).max(Comparator.comparing((seller)-> seller
                         .getTransactions().stream()
                         .filter(transaction -> transaction.getRegistrationDate().isBefore(timeTo)&& transaction.getRegistrationDate().isAfter(timeFrom))
                         .map(TransactionEntity::getAmount)
-                        .reduce(BigDecimal.ZERO,BigDecimal::add))).map(entityDtoMapper::mapToSellerDto);
+                        .reduce(BigDecimal.ZERO,BigDecimal::add)))
+                .map(entityDtoMapper::mapToSellerDto);
     }
 
 }

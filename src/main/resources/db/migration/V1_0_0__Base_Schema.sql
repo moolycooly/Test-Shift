@@ -15,6 +15,6 @@ CREATE TABLE sales_management.transaction (
     transaction_date TIMESTAMP NOT NULL,
     CONSTRAINT fk_seller
       FOREIGN KEY (seller_id)
-          REFERENCES seller (id)
+          REFERENCES sales_management.seller (id)
           ON DELETE CASCADE
 );

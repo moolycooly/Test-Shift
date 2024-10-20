@@ -2,6 +2,7 @@ package org.shiftlab.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,14 +14,17 @@ import org.shiftlab.dto.SellerDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.*;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,8 +42,18 @@ public class SellerRestControllerTestIT {
     @Autowired
     MockMvc mvc;
 
+    @MockBean
+    private Clock clock;
+
     final String url = "/seller";
 
+
+    @BeforeEach
+    void setUp() {
+        Instant mockTime = Instant.parse("2024-10-20T12:30:00Z");
+        when(clock.instant()).thenReturn(mockTime);
+        when(clock.getZone()).thenReturn(ZoneOffset.UTC);
+    }
     @Test
     @DisplayName("Get all sellers - Should return empty list when sellers dont exist")
     void getAllSellers_SellersNotExists_ReturnEmptyList() throws Exception {
@@ -108,6 +122,49 @@ public class SellerRestControllerTestIT {
                         "registrationDate": "2024-10-22T14:30:00"
                     }
                     """));
+    }
+    @Test
+    @Sql("/sql/insert.sql")
+    @DisplayName("Get seller by id - Should return seller with transaction when seller exist and transaction is true in params")
+    void getSellerById_SellerExistsTransactionParamIsTrue_ReturnSellerAndHisTransaction() throws Exception {
+        //given
+        int id = 1;
+        var requestBuilder = get(url + "/" + id).param("transactions","true");
+        //when
+        mvc.perform(requestBuilder).andExpectAll(
+                //then
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                content().json("""
+                        {
+                          "id": 1,
+                          "name": "Alberto Mayert",
+                          "contactInfo": "878-999-0161",
+                          "registrationDate": "2022-10-22T14:30:00",
+                          "transactions": [
+                            {
+                              "id": 1,
+                              "amount": 500.12,
+                              "paymentType": "TRANSFER",
+                              "transactionDate": "2024-09-11T14:30:00",
+                              "sellerId": 1
+                            },
+                            {
+                              "id": 2,
+                              "amount": 100.50,
+                              "paymentType": "CARD",
+                              "transactionDate": "2024-09-11T15:00:00",
+                              "sellerId": 1
+                            },
+                            {
+                              "id": 3,
+                              "amount": 325.51,
+                              "paymentType": "TRANSFER",
+                              "transactionDate": "2024-09-11T14:45:00",
+                              "sellerId": 1
+                            }
+                          ]
+                    }"""));
     }
     @Test
     @DisplayName("Get seller by id -Should return NOT FOUND when seller doesnt exist")
@@ -252,38 +309,234 @@ public class SellerRestControllerTestIT {
 
     }
     @Test
-    @DisplayName("Get most productive seller in period - Should return valid top seller when period is valid")
-    void getMostProductiveSellerInPeriod_PayloadIsValidSellerExist_ReturnsSeller() {
+    @Sql("/sql/insert.sql")
+    @DisplayName("Get most productive seller in period(year) - Should return valid top seller when period is valid")
+    void getMostProductiveSellerInPeriod_PayloadIsValidPeriodIsYearSellerExist_ReturnsSeller() throws Exception {
+        //given
+        var requestBuilder = get(url+"/most-productive")
+                .param("period","year");
+        //when
+        mvc.perform(requestBuilder).andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                content().json("""
+                        {
+                          "id": 1,
+                          "name": "Alberto Mayert",
+                          "contactInfo": "878-999-0161",
+                          "registrationDate": "2022-10-22T14:30:00"
+                        }
+                        """)
+        );
 
     }
     @Test
+    @Sql("/sql/insert.sql")
+    @DisplayName("Get most productive seller in period(month) - Should return valid top seller when period is valid")
+    void getMostProductiveSellerInPeriod_PayloadIsValidPeriodIsMonthSellerExist_ReturnsSeller() throws Exception {
+        //given
+        var requestBuilder = get(url+"/most-productive")
+                .param("period","month");
+        //when
+        mvc.perform(requestBuilder).andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                content().json("""
+                        {
+                          "id": 2,
+                          "name": "Elmer Runte",
+                          "contactInfo": "645-423-7550",
+                          "registrationDate": "2024-09-03T09:45:00"
+                        }
+                        """)
+        );
+
+    }
+    @Test
+    @Sql("/sql/insert.sql")
+    @DisplayName("Get most productive seller in period(day) - Should return valid top seller when period is valid")
+    void getMostProductiveSellerInPeriod_PayloadIsValidPeriodIsDaySellerExist_ReturnsSeller() throws Exception {
+        //given
+        var requestBuilder = get(url+"/most-productive")
+                .param("period","day");
+        //when
+        mvc.perform(requestBuilder).andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                content().json("""
+                            {
+                              "id": 3,
+                              "name": "Christina Zieme",
+                              "contactInfo": "921-270-2943",
+                              "registrationDate": "2024-10-19T12:00:00"
+                            }
+                        """)
+        );
+
+    }
+    @Test
+    @Sql("/sql/insert.sql")
     @DisplayName("Get most productive seller in period - Should return not found when there is no sellers in period")
-    void getMostProductiveSellerInPeriod_PayloadIsValidSellerNotExists_ReturnsNotFound() {
-
+    void getMostProductiveSellerInPeriod_PayloadIsValidSellerNotExists_ReturnsNotFound() throws Exception {
+        //given
+        Instant mockTime = Instant.parse("2021-10-20T12:30:00Z");
+        when(clock.instant()).thenReturn(mockTime);
+        when(clock.getZone()).thenReturn(ZoneOffset.UTC);
+        var requestBuilder = get(url+"/most-productive")
+                .param("period","day");
+        //when
+        mvc.perform(requestBuilder).andExpectAll(
+                status().isNotFound(),
+                content().contentType(MediaType.APPLICATION_PROBLEM_JSON)
+        );
     }
     @Test
+    @Sql("/sql/insert.sql")
     @DisplayName("Get most productive seller in period - Should return bad request when period is invalid")
-    void getMostProductiveSellerInPeriod_PayloadIsInValid_ReturnsBadRequest() {
-
+    void getMostProductiveSellerInPeriod_PayloadIsInValid_ReturnsBadRequest() throws Exception {
+        //given
+        var requestBuilder = get(url+"/most-productive")
+                .param("period","ssm");
+        //when
+        mvc.perform(requestBuilder).andExpectAll(
+                status().isBadRequest(),
+                content().contentType(MediaType.APPLICATION_PROBLEM_JSON)
+        );
     }
 
     @Test
+    @Sql("/sql/insert.sql")
+    @DisplayName("Get sellers which sum of transaction`s amount less then very large sum and transaction filtered by date "+
+            "- Should return list of all sellers which transaction were between dates ")
+    void getSellersTransactionsAmountLessThenSumma_PayloadIsValidSellersExistSum1_ReturnListOfThreeSellers() throws Exception {
+        //given
+        var requestBuilder = get(url+"/less-then-summa")
+                .param("dateFrom","2024-09-10")
+                .param("dateTo","2024-10-20")
+                .param("summa", "10000");
+        //when
+        mvc.perform(requestBuilder).andExpectAll(
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                content().json(""" 
+                        [
+                              {
+                                "id": 1,
+                                "name": "Alberto Mayert",
+                                "contactInfo": "878-999-0161",
+                                "registrationDate": "2022-10-22T14:30:00"
+                              },
+                              {
+                                "id": 2,
+                                "name": "Elmer Runte",
+                                "contactInfo": "645-423-7550",
+                                "registrationDate": "2024-09-03T09:45:00"
+                              },
+                              {
+                                "id": 3,
+                                "name": "Christina Zieme",
+                                "contactInfo": "921-270-2943",
+                                "registrationDate": "2024-10-19T12:00:00"
+                              }
+                          ]
+        """)
+        );
+
+    }
+    @Test
+    @Sql("/sql/insert.sql")
     @DisplayName("Get sellers which sum of transaction`s amount less then summa and transaction filtered by date "+
             "- Should return list of sellers when payload is valid and there is sellers ")
-    void getSellersTransactionsAmountLessThenSumma_PayloadIsValidSellersExist_ReturnListSellers() {
+    void getSellersTransactionsAmountLessThenSumma_PayloadIsValidSellersExistSum2_ReturnListOfTwoSellers() throws Exception {
+        //given
+        var requestBuilder = get(url+"/less-then-summa")
+                .param("dateFrom","2024-09-10")
+                .param("dateTo","2024-10-20")
+                .param("summa", "58.12");
+        //when
+        mvc.perform(requestBuilder).andExpectAll(
+                //then
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                content().json(""" 
+                        [
+                              {
+                                "id": 2,
+                                "name": "Elmer Runte",
+                                "contactInfo": "645-423-7550",
+                                "registrationDate": "2024-09-03T09:45:00"
+                              },
+                              {
+                                "id": 3,
+                                "name": "Christina Zieme",
+                                "contactInfo": "921-270-2943",
+                                "registrationDate": "2024-10-19T12:00:00"
+                              }
+                          ]
+        """)
+        );
 
     }
     @Test
+    @Sql("/sql/insert.sql")
+    @DisplayName("Get sellers which sum of transaction`s amount less then summa and transaction filtered by date "+
+            "- Should return list of sellers when payload is valid and there is sellers ")
+    void getSellersTransactionsAmountLessThenSumma_PayloadIsValidSellersExistSum3_ReturnListOfOneSellers() throws Exception {
+        //given
+        var requestBuilder = get(url+"/less-then-summa")
+                .param("dateFrom","2024-09-10")
+                .param("dateTo","2024-10-20")
+                .param("summa", "7.12");
+        //when
+        mvc.perform(requestBuilder).andExpectAll(
+                //then
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                content().json(""" 
+                        [
+                              {
+                                "id": 3,
+                                "name": "Christina Zieme",
+                                "contactInfo": "921-270-2943",
+                                "registrationDate": "2024-10-19T12:00:00"
+                              }
+                          ]
+        """)
+        );
+    }
+    @Test
+    @Sql("/sql/insert.sql")
     @DisplayName("Get sellers which sum of transaction`s amount less then summa and transaction filtered by date "+
             "- Should return empty list when payload is valid and there is not sellers ")
-    void getSellersTransactionsAmountLessThenSumma_PayloadIsValidSellersIsExist_ReturnEmptyList() {
-
+    void getSellersTransactionsAmountLessThenSumma_PayloadIsValidSellersExistSum4_ReturnEmptyList() throws Exception {
+        //given
+        var requestBuilder = get(url+"/less-then-summa")
+                .param("dateFrom","2024-09-10")
+                .param("dateTo","2024-10-20")
+                .param("summa", "1.1");
+        //when
+        mvc.perform(requestBuilder).andExpectAll(
+                //then
+                status().isOk(),
+                content().contentType(MediaType.APPLICATION_JSON),
+                content().json("[]")
+        );
     }
     @Test
     @DisplayName("Get sellers which sum of transaction`s amount less then summa and transaction filtered by date "+
-            "- Should return bad request when payload is invalid")
-    void getSellersTransactionsAmountLessThenSumma_PayloadIsInValid_ReturnBadRequest() {
+            "- Should return bad request when payload is invalid ( dateFrom is after then dateTo )")
+    void getSellersTransactionsAmountLessThenSumma_PayloadIsInValid_ReturnBadRequest() throws Exception {
+        //given
+        var requestBuilder = get(url+"/less-then-summa")
+                .param("dateFrom","2025-09-10")
+                .param("dateTo","2023-10-20")
+                .param("summa", "1.1");
 
+        //when
+        mvc.perform(requestBuilder).andExpectAll(
+                status().isBadRequest(),
+                content().contentType(MediaType.APPLICATION_PROBLEM_JSON)
+        );
     }
 
     static Stream<NewSellerPayload> invalidPayloadNewSeller() {

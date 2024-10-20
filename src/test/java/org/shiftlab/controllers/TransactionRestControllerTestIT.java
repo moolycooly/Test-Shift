@@ -71,21 +71,21 @@ public class TransactionRestControllerTestIT {
                         "id": 1,
                         "amount": 500.12,
                         "paymentType": "TRANSFER",
-                        "transactionDate": "2024-10-22T14:30:00",
+                        "transactionDate": "2024-09-11T14:30:00",
                         "sellerId": 1
                     },
                     {
                         "id": 2,
                         "amount": 100.50,
                         "paymentType": "CARD",
-                        "transactionDate": "2024-10-22T15:00:00",
+                        "transactionDate": "2024-09-11T15:00:00",
                         "sellerId": 1
                     },
                     {
                         "id": 3,
                         "amount": 325.51,
                         "paymentType": "TRANSFER",
-                        "transactionDate": "2024-10-22T14:45:00",
+                        "transactionDate": "2024-09-11T14:45:00",
                         "sellerId": 1
                     },
                     {
@@ -99,7 +99,7 @@ public class TransactionRestControllerTestIT {
                         "id": 5,
                         "amount": 52.78,
                         "paymentType": "CASH",
-                        "transactionDate": "2024-09-03T11:00:00",
+                        "transactionDate": "2024-10-03T11:00:00",
                         "sellerId": 2
                     },
                     {
@@ -128,7 +128,7 @@ public class TransactionRestControllerTestIT {
                         "id": 1,
                         "amount": 500.12,
                         "paymentType": "TRANSFER",
-                        "transactionDate": "2024-10-22T14:30:00",
+                        "transactionDate": "2024-09-11T14:30:00",
                         "sellerId" : 1
                     }
                     """));

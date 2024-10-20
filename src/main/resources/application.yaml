@@ -9,6 +9,8 @@ spring:
   flyway:
     schemas:
       - sales_management
+    clean-on-validation-error: true
+
 
   jpa:
     show-sql: true

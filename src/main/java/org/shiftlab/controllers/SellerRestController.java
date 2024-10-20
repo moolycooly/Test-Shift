@@ -2,7 +2,7 @@ package org.shiftlab.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.shiftlab.controllers.payload.NewSellerPayload;
 import org.shiftlab.controllers.payload.Period;
 import org.shiftlab.controllers.payload.UpdateSellerPayload;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,10 +24,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/seller")
 @RequiredArgsConstructor
-@Slf4j
 public class SellerRestController {
     private final SellerService sellerService;
-
+    private final Clock clock;
     @GetMapping
     public List<SellerDto> getAllSellers(){
         return sellerService.findAllSellers();
@@ -43,7 +43,9 @@ public class SellerRestController {
             @RequestParam(name="summa") Double budget,
             @RequestParam(name="dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(name="dateTo")  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
-
+        if(dateFrom.isAfter(dateTo)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Date from cannot be after Date to");
+        }
         LocalDateTime timeFrom = dateFrom.atStartOfDay();
         LocalDateTime timeTo = dateTo.atTime(23,59,59);
         return sellerService.findSellersFilteredByDateAndSumma(BigDecimal.valueOf(budget),timeFrom,timeTo);
@@ -58,9 +60,8 @@ public class SellerRestController {
         catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid period: " + per);
         }
-        LocalDateTime timeFrom = period.getStartDate();
-        LocalDateTime timeTo = LocalDateTime.now();
-
+        LocalDateTime timeFrom = period.getStartDate(clock);
+        LocalDateTime timeTo = LocalDateTime.now(clock);
         return sellerService.findMostProductiveSellerByDate(timeFrom,timeTo).orElseThrow(()->new SellerNotFoundException(period));
 
     }
