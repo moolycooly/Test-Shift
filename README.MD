@@ -75,25 +75,24 @@
 - **Responses:**
     - Status: `201 CREATED`
 
-- ***Пример:*** `/seller`
+- ***Пример:***
+    - URL: `/seller`
     - request:
-```json 
-{   
-   "name": "Darin Gottlieb",
-   "contactInfo": "885-796-3985"
-}
-```
-- - response:
-
-
-  ```json
- {
-  "id": 11,
-  "name": "Darin Gottlieb",
-  "contactInfo": "885-796-3985",
-  "registrationDate": "2024-10-20T17:16:48.9827674"
-}
-  ```
+      ```json
+      {   
+         "name": "Darin Gottlieb",
+         "contactInfo": "885-796-3985"
+      }
+      ```
+    - response:
+      ```json
+      {
+        "id": 11,
+        "name": "Darin Gottlieb",
+        "contactInfo": "885-796-3985",
+        "registrationDate": "2024-10-20T17:16:48.9827674"
+      }
+      ```
 ### Обновить продавца
 
 - **URL:** `/seller/{id}`
