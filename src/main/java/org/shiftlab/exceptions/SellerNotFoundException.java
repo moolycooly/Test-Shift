@@ -15,9 +15,4 @@ public class SellerNotFoundException extends RuntimeException{
         super("Seller not found");
         this.period = period;
     }
-    public SellerNotFoundException(Integer id, Period period){
-        super("Seller not found");
-        this.id = id;
-        this.period = period;
-    }
 }

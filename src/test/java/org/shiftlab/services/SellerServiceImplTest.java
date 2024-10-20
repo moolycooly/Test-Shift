@@ -6,18 +6,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.shiftlab.dto.PaymentType;
 import org.shiftlab.dto.SellerDto;
 import org.shiftlab.exceptions.SellerNotFoundException;
 import org.shiftlab.services.impl.SellerServiceImpl;
 import org.shiftlab.services.mapper.EntityDtoMapper;
 import org.shiftlab.store.entity.SellerEntity;
+import org.shiftlab.store.entity.TransactionEntity;
 import org.shiftlab.store.repos.SellerRepository;
 
 import java.math.BigDecimal;
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,12 +34,14 @@ public class SellerServiceImplTest {
 
     @Mock
     private SellerRepository sellerRepository;
+    @Mock
+    private Clock clock;
     @InjectMocks
     private SellerServiceImpl sellerService;
 
     @BeforeEach
-    void setUp() {
-        Clock clock = Clock.systemUTC();
+    void setUp(){
+        clock = Clock.systemUTC();
         EntityDtoMapper entityDtoMapper = new EntityDtoMapper();
         sellerService=new SellerServiceImpl(sellerRepository,entityDtoMapper,clock);
     }
@@ -164,6 +171,42 @@ public class SellerServiceImplTest {
         assertTrue(result.size()==sellers.size());
     }
     @Test
+    void findMostProductiveSellerByDate_SellerExist_ReturnNotEmptyOptionalSellerDto() {
+        //given
+        var sellers = IntStream.range(1, 4)
+                .mapToObj(i -> SellerEntity
+                        .builder()
+                        .id(i)
+                        .name(String.format("Seller: %d",i))
+                        .build())
+                .toList();
+        BigDecimal max =  BigDecimal.valueOf(0);
+        int id = 0;
+        for(var seller : sellers) {
+            var transactions = getTransactionEntityList(seller);
+            seller.setTransactions(transactions);
+            var summa = BigDecimal.valueOf(0);
+            for(var transaction : transactions) {
+                summa=summa.add(transaction.getAmount());
+            }
+            if(max.compareTo(summa) < 0) {
+                id = seller.getId();
+                max = summa;
+            }
+
+        }
+        when(sellerRepository.findAllSellersJoinTransactions()).thenReturn(sellers);
+        //when
+        var result = sellerService.findMostProductiveSellerByDate(
+                LocalDateTime.of(2021,10,10,10,10),
+                LocalDateTime.of(2024,12,31,10,10));
+
+        //then
+        assertTrue(result.isPresent());
+        assertEquals(id, result.get().getId());
+
+    }
+    @Test
     void findMostProductiveSellerByDate_SellerNotExist_ReturnEmptyOptionalSellerDto() {
         //given
 
@@ -184,6 +227,15 @@ public class SellerServiceImplTest {
         //then
         assertThrows(SellerNotFoundException.class,()->sellerService.deleteSellerById(1));
     }
+    @Test
+    void deleteById_SellerExists_ReturnNothing() {
+
+        //given
+        when(sellerRepository.existsById(1)).thenReturn(true);
+        //then
+        sellerService.deleteSellerById(1);
+
+    }
 
 
     SellerEntity getAnySellerEntity() {
@@ -193,6 +245,18 @@ public class SellerServiceImplTest {
                 .name("Alexander M")
                 .transactions(List.of())
                 .build();
+    }
+    List<TransactionEntity> getTransactionEntityList(SellerEntity sellerEntity) {
+        var rand = new Random();
+        return IntStream.range(1,rand.nextInt(1,4))
+                .mapToObj(i -> TransactionEntity
+                        .builder()
+                        .id(i)
+                        .amount(BigDecimal.valueOf(rand.nextDouble(10,500)))
+                        .registrationDate(LocalDateTime.of(2024,10,10,12,0))
+                        .seller(sellerEntity)
+                        .paymentType(PaymentType.TRANSFER)
+                        .build()).toList();
     }
 
 }

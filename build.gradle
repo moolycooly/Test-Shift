@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'jacoco'
     id "io.freefair.lombok" version "8.10"
+    id("org.springframework.boot") version "3.3.4"
+
 }
 
 group = 'org.shiftlab'
@@ -10,6 +12,7 @@ version = '1.0-SNAPSHOT'
 repositories {
     mavenCentral()
 }
+
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport

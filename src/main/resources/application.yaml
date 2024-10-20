@@ -1,16 +1,13 @@
 server:
-  port: 2525
+  port: 8080
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}/${POSTGRES_DB_NAME:shift}
+    username: ${POSTGRES_USERNAME:shift}
+    password: ${POSTGRES_PASSWORD:shift}
     driver-class-name: org.postgresql.Driver
   flyway:
     schemas:
       - sales_management
-    clean-on-validation-error: true
-
-
   jpa:
     show-sql: true
