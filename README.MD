@@ -117,6 +117,8 @@
 
 - **URL:** `/seller/{id}`
 - **Метод:** `DELETE`
+- **Описание:** Удаляет продавца по переданному id. Если такого продавца нет то в ответе код 404.
+
 - **Responses:**
     - Status: `204 NO CONTENT`
     - Status: `404 NOT FOUND`
@@ -233,26 +235,25 @@
 - **Responses:**
     - Status: `201 CREATED`
 - ***Пример:*** `/transaction`
-    - request:
-```json 
-{
-  "sellerId" : 9,
-  "amount": 889.46,
-  "paymentType": "CASH"
-}
-```
-- - response:
+    - Request:
+      ```json
+      {   
+           "sellerId" : 9,
+           "amount": 889.46,
+           "paymentType": "CASH"
+      }
+      ```
+    - Response:
+      ```json
+      {
+           "id": 19,
+           "amount": 889.46,
+           "paymentType": "CASH",
+           "transactionDate": "2024-10-20T17:43:22.4469899",
+           "sellerId": 9
+      }
+      ```
 
-
-  ```json
-{
-      "id": 19,
-      "amount": 889.46,
-      "paymentType": "CASH",
-      "transactionDate": "2024-10-20T17:43:22.4469899",
-      "sellerId": 9
-}
-  ```
 
 
 
