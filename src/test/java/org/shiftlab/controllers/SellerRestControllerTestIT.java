@@ -10,7 +10,6 @@ import org.shiftlab.Main;
 import org.shiftlab.controllers.payload.NewSellerPayload;
 import org.shiftlab.controllers.payload.UpdateSellerPayload;
 import org.shiftlab.dto.SellerDto;
-import org.shiftlab.store.repos.SellerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,12 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(printOnlyOnFailure = false)
 @Transactional
 public class SellerRestControllerTestIT {
-//    @Container
-//    @ServiceConnection
-//    static PostgreSQLContainer<?> postgresSQLContainer = new PostgreSQLContainer<>("postgres:15");
 
-    @Autowired
-    SellerRepository sellerRepository;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -99,7 +93,8 @@ public class SellerRestControllerTestIT {
     @DisplayName("Get seller by id - Should return seller when seller exist")
     void getSellerById_SellerExists_ReturnSeller() throws Exception {
         //given
-        var requestBuilder = get(url + "/1");
+        int id = 1;
+        var requestBuilder = get(url + "/" + id);
         //when
         mvc.perform(requestBuilder).andExpectAll(
                 //then
@@ -117,7 +112,8 @@ public class SellerRestControllerTestIT {
     @Test
     @DisplayName("Get seller by id -Should return NOT FOUND when seller doesnt exist")
     void getSellerById_SellerNotExists_ReturnNotFound() throws Exception {
-        var requestBuilder = get(url + "/1");
+        int id = 1;
+        var requestBuilder = get(url + "/" + id);
         //when
         mvc.perform(requestBuilder).andExpectAll(
                 //then
@@ -149,7 +145,7 @@ public class SellerRestControllerTestIT {
     }
     @ParameterizedTest
     @MethodSource("invalidPayloadNewSeller")
-    @DisplayName("Create seller - Should return Seller when payload is valid")
+    @DisplayName("Create seller - Should return bad request when payload is invalid")
     void createSeller_PayloadInValid_ReturnBadRequest(NewSellerPayload sellerPayload) throws Exception {
         //given
         var requestBuilder = post(url)
@@ -186,6 +182,7 @@ public class SellerRestControllerTestIT {
         var content = objectMapper.readValue(response.getContentAsString(), SellerDto.class);
         assertThat(content.getName()).isNotNull();
         assertThat(content.getContactInfo()).isEqualTo(updateSeller.contactInfo());
+        assertThat(content.getRegistrationDate()).isNotNull();
 
     }
     @ParameterizedTest
@@ -252,6 +249,40 @@ public class SellerRestControllerTestIT {
                 status().isNotFound(),
                 content().contentType(MediaType.APPLICATION_PROBLEM_JSON)
         );
+
+    }
+    @Test
+    @DisplayName("Get most productive seller in period - Should return valid top seller when period is valid")
+    void getMostProductiveSellerInPeriod_PayloadIsValidSellerExist_ReturnsSeller() {
+
+    }
+    @Test
+    @DisplayName("Get most productive seller in period - Should return not found when there is no sellers in period")
+    void getMostProductiveSellerInPeriod_PayloadIsValidSellerNotExists_ReturnsNotFound() {
+
+    }
+    @Test
+    @DisplayName("Get most productive seller in period - Should return bad request when period is invalid")
+    void getMostProductiveSellerInPeriod_PayloadIsInValid_ReturnsBadRequest() {
+
+    }
+
+    @Test
+    @DisplayName("Get sellers which sum of transaction`s amount less then summa and transaction filtered by date "+
+            "- Should return list of sellers when payload is valid and there is sellers ")
+    void getSellersTransactionsAmountLessThenSumma_PayloadIsValidSellersExist_ReturnListSellers() {
+
+    }
+    @Test
+    @DisplayName("Get sellers which sum of transaction`s amount less then summa and transaction filtered by date "+
+            "- Should return empty list when payload is valid and there is not sellers ")
+    void getSellersTransactionsAmountLessThenSumma_PayloadIsValidSellersIsExist_ReturnEmptyList() {
+
+    }
+    @Test
+    @DisplayName("Get sellers which sum of transaction`s amount less then summa and transaction filtered by date "+
+            "- Should return bad request when payload is invalid")
+    void getSellersTransactionsAmountLessThenSumma_PayloadIsInValid_ReturnBadRequest() {
 
     }
 
