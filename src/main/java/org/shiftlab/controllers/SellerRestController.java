@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.shiftlab.controllers.payload.NewSellerPayload;
 import org.shiftlab.controllers.payload.Period;
 import org.shiftlab.controllers.payload.UpdateSellerPayload;
+import org.shiftlab.dto.BestPeriod;
 import org.shiftlab.dto.SellerDto;
 import org.shiftlab.exceptions.SellerNotFoundException;
 import org.shiftlab.services.SellerService;
@@ -65,6 +66,13 @@ public class SellerRestController {
         return sellerService.findMostProductiveSellerByDate(timeFrom,timeTo).orElseThrow(()->new SellerNotFoundException(period));
 
     }
+    @GetMapping("/best-period/{id}")
+    public BestPeriod getMostProductiveSellerInPeriod(@PathVariable(name = "id") int id) {
+
+        return sellerService.findBestPeriodOfSeller(id);
+
+    }
+
 
     @PostMapping
     public ResponseEntity<SellerDto> createSeller(@RequestBody @Valid NewSellerPayload newSellerPayload) {

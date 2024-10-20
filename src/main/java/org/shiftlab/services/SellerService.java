@@ -1,5 +1,6 @@
 package org.shiftlab.services;
 
+import org.shiftlab.dto.BestPeriod;
 import org.shiftlab.dto.SellerDto;
 
 import java.math.BigDecimal;
@@ -15,4 +16,5 @@ public interface SellerService {
     void deleteSellerById(int id);
     List<SellerDto> findSellersFilteredByDateAndSumma(BigDecimal summa, LocalDateTime timeFrom, LocalDateTime timeTo);
     Optional<SellerDto> findMostProductiveSellerByDate(LocalDateTime timeFrom, LocalDateTime timeTo);
+    BestPeriod findBestPeriodOfSeller(int id);
 }

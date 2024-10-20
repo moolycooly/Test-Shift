@@ -2,6 +2,7 @@ package org.shiftlab.services.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.shiftlab.dto.BestPeriod;
 import org.shiftlab.dto.SellerDto;
 import org.shiftlab.exceptions.SellerNotFoundException;
 import org.shiftlab.services.SellerService;
@@ -13,10 +14,12 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Clock;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -109,6 +112,42 @@ public class SellerServiceImpl implements SellerService{
                         .map(TransactionEntity::getAmount)
                         .reduce(BigDecimal.ZERO,BigDecimal::add)))
                 .map(entityDtoMapper::mapToSellerDto);
+    }
+
+    public BestPeriod findBestPeriodOfSeller(int id) {
+        SellerEntity seller = sellerRepository.findById(id).orElseThrow(()->new SellerNotFoundException(id));
+        List<LocalDate> dates = seller.getTransactions().stream()
+                .sorted(Comparator.comparing(TransactionEntity::getRegistrationDate))
+                .map(transaction -> transaction.getRegistrationDate().toLocalDate())
+                .toList();
+        double evaluation = 0;
+        BestPeriod result = new BestPeriod();
+        for(int count = 1; count <= dates.size(); count++) {
+            Long minDuration = null;
+            LocalDate answerStartPeriod = null;
+            LocalDate answerEndPeriod = null;
+            for(int i = 0; i+ count -1< dates.size(); i++){
+
+                long periodDays = ChronoUnit.DAYS.between(dates.get(i), dates.get(i+ count -1)) + 1;
+
+                if(minDuration==null || periodDays <= minDuration) {
+                    minDuration=periodDays;
+                    answerStartPeriod = dates.get(i);
+                    answerEndPeriod = dates.get(i+ count -1);
+                }
+            }
+            double tmpEvaluation = evaluationFunction(count,minDuration);
+            if(tmpEvaluation>evaluation) {
+                evaluation=tmpEvaluation;
+                result = new BestPeriod(answerStartPeriod,answerEndPeriod,count);
+
+            }
+        }
+        return result;
+
+    }
+    private double evaluationFunction(int countOfTransactions, long period) {
+        return (double) countOfTransactions*countOfTransactions/period;
     }
 
 }

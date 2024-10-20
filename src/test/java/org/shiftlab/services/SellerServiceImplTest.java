@@ -17,9 +17,7 @@ import org.shiftlab.store.repos.SellerRepository;
 
 import java.math.BigDecimal;
 import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -236,7 +234,21 @@ public class SellerServiceImplTest {
         sellerService.deleteSellerById(1);
 
     }
+    @Test
+    void findBestPeriodOfSeller_SellerExist_ReturnBestPeriod() {
+        //given
+        var seller = getAnySellerEntity();
+        seller.setTransactions(getTransactionEntityList(seller));
+        when(sellerRepository.findById(1)).thenReturn(Optional.of(seller));
 
+        //when
+
+        var result = sellerService.findBestPeriodOfSeller(1);
+
+        //then
+
+        assertEquals(result.getCount(),seller.getTransactions().size());
+    }
 
     SellerEntity getAnySellerEntity() {
         return SellerEntity.builder()
