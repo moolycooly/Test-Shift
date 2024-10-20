@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:16://localhost/shift?TC_DAEMON=true
+    username: postgres
+    password: postgres
+  flyway:
+    schemas:
+      - sales_management

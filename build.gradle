@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+    id "io.freefair.lombok" version "8.10"
+}
+
+group = 'org.shiftlab'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    //starters
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.3.3")
+    implementation("org.springframework.boot:spring-boot-starter-web:3.3.3")
+    implementation("org.springframework.boot:spring-boot-starter-validation:3.3.3")
+    //
+    implementation("org.postgresql:postgresql:42.7.4")
+    implementation("org.flywaydb:flyway-database-postgresql:10.20.0")
+    //
+    implementation("org.modelmapper:modelmapper:3.2.1")
+
+    //test
+    testImplementation("org.springframework.boot:spring-boot-starter-test:3.3.3")
+    testImplementation("org.testcontainers:postgresql:1.20.2")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers:3.3.3")
+    testImplementation("org.testcontainers:junit-jupiter:1.20.2")
+
+
+
+
+}
+
+test {
+    useJUnitPlatform()
+}
